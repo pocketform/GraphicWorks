@@ -58,4 +58,6 @@ colour1           += (lightColour.rgb * sFactor1 )  * 0.33;
 gl_FragColor      = vec4 ( colour * atten * lambert , diffuse.a );
 gl_FragColor      +=vec4(colour1 * atten1 * lambert1, diffuse.a);
 gl_FragColor.rgb  +=  ( diffuse.rgb * lightColour.rgb ) * 0.1;
+
+
 }
