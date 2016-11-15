@@ -1,5 +1,5 @@
 #pragma once
-
+#include <sstream>
 #include "../../nclgl/OGLRenderer.h"
 #include "../../nclgl/Camera.h"
 #include "../../nclgl/HeightMap.h"
@@ -12,12 +12,26 @@ public:
 
 	virtual void RenderScene();
 	virtual void UpdateScene(float msec);
-	Light moveLight(Light mylight);
+	//try to move light
+	Light MoveLight(Light mylight);
+
+	//add a light to lights vector
+	void AddLight(Vector3 position, Vector4 colour, float radius);
 
 protected:
+
+	static const int num_light = 4;
+
 	Mesh   * heightMap;
 	Camera * camera;
+
+	//multiple lights
+	vector<Light*> lights;
+
 	Light  * light;
 	Light  * mylight;
-	//vector<Light>  *lights;
+
+	Vector4 lightColour[num_light];
+	Vector3 lightPos[num_light];
+	GLfloat lightRadius[num_light];
 };
