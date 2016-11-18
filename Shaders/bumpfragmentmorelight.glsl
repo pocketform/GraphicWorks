@@ -50,4 +50,5 @@ void main (void)
         gl_FragColor     += vec4 (colour * atten * lambert, diffuse.a);
         gl_FragColor.rgb += (diffuse.rgb * lightColour[i].rgb) * 0.001;
     }
+	//gl_FragColor.rgb = normal;
 }

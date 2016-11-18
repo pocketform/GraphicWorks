@@ -40,7 +40,7 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <IncludePath>..\..\GLEW\include;..\..\SOIL;..\..\;$(IncludePath)</IncludePath>
-    <LibraryPath>..\..\GLEW\lib;..\..\SOIL\$(Configuration);..\$(Configuration)\;..\..\nclgl\$(Configuration)\;$(LibraryPath)</LibraryPath>
+    <LibraryPath>..\..\GLEW\lib\$(Configuration);..\..\SOIL\$(Configuration)\;..\$(Configuration)\;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <IncludePath>..\..\GLEW\include;..\..\SOIL;..\..\</IncludePath>
@@ -69,6 +69,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="MoGraphicsCoursework.cpp" />
+    <ClCompile Include="Renderer.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Renderer.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
