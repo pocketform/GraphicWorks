@@ -8,9 +8,9 @@ uniform vec4  lightColour ;
 uniform vec3  lightPos ;
 uniform float lightRadius;
 
-uniform vec4  lightColour1 ;
-uniform vec3  lightPos1 ;
-uniform float lightRadius1 ;
+//uniform vec4  lightColour1 ;
+//uniform vec3  lightPos1 ;
+//uniform float lightRadius1 ;
 
 in Vertex {
 vec4 colour;
