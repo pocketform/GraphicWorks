@@ -36,7 +36,6 @@ Renderer::Renderer(Window & parent) : OGLRenderer(parent)
 		return;
 	}
 
-
 	//initialize shadow
 	glGenTextures(1, &shadowTex);// get a shadowtex
 	glBindTexture(GL_TEXTURE_2D, shadowTex);// bind shadowtex
@@ -158,19 +157,16 @@ void Renderer::DrawHeightmap()
 	SetCurrentShader(lightShader);
 	SetShaderLight(*light);
 
-	glUniform3fv(glGetUniformLocation(currentShader->GetProgram(), 
-				 "cameraPos"), 1, (float *)& camera->GetPosition());
-
 	glUniform1i(glGetUniformLocation(currentShader->GetProgram(),
 				"diffuseTex"), 0);
-
 	glUniform1i(glGetUniformLocation(currentShader->GetProgram(),
 				"bumpTex"), 1);
-
+	glUniform3fv(glGetUniformLocation(currentShader->GetProgram(),
+				"cameraPos"), 1, (float *)& camera->GetPosition());
 	glUniform1i(glGetUniformLocation(currentShader->GetProgram(),
-				"shadowTex"), 6);
+				"shadowTex"), 3);
 
-	glActiveTexture(GL_TEXTURE6);
+	glActiveTexture(GL_TEXTURE3);
 	glBindTexture(GL_TEXTURE_2D, shadowTex);//bind shadowTex
 
 
@@ -201,11 +197,11 @@ void Renderer::DrawWater()
 {
 	SetCurrentShader(reflectShader);
 	SetShaderLight(*light);
-	glUniform3fv(glGetUniformLocation(currentShader->GetProgram(),
-				"cameraPos"), 1, (float *)& camera->GetPosition());
+	//glUniform3fv(glGetUniformLocation(currentShader->GetProgram(),
+	//			"cameraPos"), 1, (float *)& camera->GetPosition());
 
-	glUniform1i(glGetUniformLocation(currentShader->GetProgram(),
-				"diffuseTex"), 0);
+	//glUniform1i(glGetUniformLocation(currentShader->GetProgram(),
+	//			"diffuseTex"), 0);
 
 	glUniform1i(glGetUniformLocation(currentShader->GetProgram(),
 				"cubeTex"), 2);
@@ -216,7 +212,7 @@ void Renderer::DrawWater()
 	//float heightX = (RAW_WIDTH * HEIGHTMAP_X / 2.0f);
 	float heightX = (RAW_WIDTH * HEIGHTMAP_X * 2);
 
-	float heightY = 256 * HEIGHTMAP_Y / 3.0f;
+	float heightY = (256 * HEIGHTMAP_Y / 3.0f) + 20.0f;
 
 	//float heightZ = (RAW_HEIGHT * HEIGHTMAP_Z / 2.0f);
 	float heightZ = (RAW_HEIGHT * HEIGHTMAP_Z * 2);
@@ -283,20 +279,17 @@ void Renderer::DrawShadowScene()
 void Renderer::DrawCombinedScene()
 {
 	//SetCurrentShader(sceneShader);
-	glUniform1i(glGetUniformLocation(currentShader->GetProgram(),
-				"diffuseTex"), 0);
-	glUniform1i(glGetUniformLocation(currentShader->GetProgram(),
-				"bumpTex"), 1);
-	glUniform1i(glGetUniformLocation(currentShader->GetProgram(),
-				"shadowTex"), 2);
-	glUniform3fv(glGetUniformLocation(currentShader->GetProgram(),
-				"cameraPos"), 1, (float *)& camera->GetPosition());
+	//glUniform1i(glGetUniformLocation(currentShader->GetProgram(),
+	//			"diffuseTex"), 0);
+	//glUniform1i(glGetUniformLocation(currentShader->GetProgram(),
+	//			"bumpTex"), 1);
+	//glUniform3fv(glGetUniformLocation(currentShader->GetProgram(),
+	//			"cameraPos"), 1, (float *)& camera->GetPosition());
 
 	//SetShaderLight(*light);
-	//SetShaderLight1(*light2);
 
-	glActiveTexture(GL_TEXTURE2);
-	glBindTexture(GL_TEXTURE_2D, shadowTex);//bind shadowTex
+
+	//glBindTexture(GL_TEXTURE_2D, shadowTex);//bind shadowTex
 
 	viewMatrix = camera -> BuildViewMatrix();
 	//textureMatrix = Matrix4::BuildViewMatrix(
