@@ -6,8 +6,8 @@ Renderer::Renderer(Window & parent) : OGLRenderer(parent)
 	camera    = new Camera();
 	heightMap = new HeightMap(TEXTUREDIR"iceland.raw");
 	quad      = Mesh::GenerateQuad();
-	light     = new Light(Vector3((RAW_HEIGHT * HEIGHTMAP_X / 1.2f), 600.0f,
-						 (RAW_HEIGHT * HEIGHTMAP_Z / 1.2f)),
+	light     = new Light(Vector3((RAW_HEIGHT * HEIGHTMAP_X / 1.0f), 600.0f,
+						 (RAW_HEIGHT * HEIGHTMAP_Z / 1.0f)),
 						 Vector4(0.9f, 0.9f, 1.0f, 1),
 						 (RAW_WIDTH * HEIGHTMAP_X) * 2);
 
@@ -22,10 +22,6 @@ Renderer::Renderer(Window & parent) : OGLRenderer(parent)
 				 			   "skyboxFragment.glsl");
 	lightShader   = new Shader("lightShadowVertex.glsl",
 					 		   "lightshadowfrg.glsl");
-	sceneShader   = new Shader("shadowscenevert.glsl",
-							   "shadowscenefrag.glsl");
-	shadowShader  = new Shader("shadowVert.glsl",
-							   "shadowFrag.glsl");
 
 	if (!reflectShader->LinkProgram())
 	{
@@ -39,14 +35,7 @@ Renderer::Renderer(Window & parent) : OGLRenderer(parent)
 	{
 		return;
 	}
-	if (!sceneShader->LinkProgram())
-	{
-		return;
-	}
-	if (!shadowShader->LinkProgram())
-	{
-		return;
-	}
+
 
 	//initialize shadow
 	glGenTextures(1, &shadowTex);// get a shadowtex
@@ -71,14 +60,19 @@ Renderer::Renderer(Window & parent) : OGLRenderer(parent)
 	quad->SetTexture(SOIL_load_OGL_texture(TEXTUREDIR"water.jpg",
 					 SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS));
 
+	//heightMap->SetTexture(SOIL_load_OGL_texture(
+	//					  TEXTUREDIR"BarrenReds.JPG", SOIL_LOAD_AUTO,
+	//					  SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS));
 	heightMap->SetTexture(SOIL_load_OGL_texture(
-						  TEXTUREDIR"BarrenReds.JPG", SOIL_LOAD_AUTO,
+						  TEXTUREDIR"mytexture00.jpg", SOIL_LOAD_AUTO,
 						  SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS));
-
+	//heightMap->SetBumpMap(SOIL_load_OGL_texture(
+	//					  TEXTUREDIR"Barren RedsDOT3.jpg", SOIL_LOAD_AUTO,
+	//					  SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS));
 	heightMap->SetBumpMap(SOIL_load_OGL_texture(
-						  TEXTUREDIR"Barren RedsDOT3.jpg", SOIL_LOAD_AUTO,
+						  TEXTUREDIR"mybumpmap.jpg", SOIL_LOAD_AUTO,
 						  SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS));
-
+	
 	cubeMap = SOIL_load_OGL_cubemap(TEXTUREDIR"rusted_west.jpg",  TEXTUREDIR"rusted_east.jpg",
 									TEXTUREDIR"rusted_up.jpg",    TEXTUREDIR"rusted_down.jpg",
 									TEXTUREDIR"rusted_south.jpg", TEXTUREDIR"rusted_north.jpg",
@@ -127,8 +121,6 @@ Renderer ::~Renderer(void)
 	delete lightShader;
 	delete light;
 
-	delete sceneShader;//shadow
-	delete shadowShader;//shadow
 	currentShader = 0;
 }
 void Renderer::UpdateScene(float msec)
@@ -143,8 +135,6 @@ void Renderer::RenderScene()
 	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
 	DrawSkybox();
-	//DrawHeightmap();
-	//DrawWater();
 
 	DrawShadowScene(); // First render pass for shadow...
 	DrawCombinedScene(); // Second render pass for shadow ...
@@ -200,9 +190,6 @@ void Renderer::DrawHeightmap()
 
 	glUniformMatrix4fv(glGetUniformLocation(currentShader->GetProgram()
 						,"modelMatrix"), 1, false, *& modelMatrix.values);
-
-	//glUniformMatrix4fv(glGetUniformLocation(currentShader->GetProgram()
-	//					,"shadowMatrix"), 1, false, *& tempMatrix.values);
 	
 	UpdateShaderMatrices();
 
@@ -267,9 +254,9 @@ void Renderer::DrawShadowScene()
 	glBindFramebuffer(GL_FRAMEBUFFER, shadowFBO);// bind shadowFBO
 
 	glClear(GL_DEPTH_BUFFER_BIT);// clear area without shadow
-								 //glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+								 // glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
-	glViewport(0, 0, 2048, 2048);//keep same size
+	glViewport(0, 0, 2048, 2048);// keep same size
 
 	glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
 	//glColorMask(1, 1, 1, 1);

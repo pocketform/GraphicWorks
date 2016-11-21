@@ -48,8 +48,6 @@ if( IN.shadowProj . w > 0.0)
 { // New !
 shadow = textureProj ( shadowTex , IN.shadowProj );
 }
-
-
 lambert          *= shadow;
 
 vec3 colour      =  ( diffuse.rgb * lightColour.rgb);
