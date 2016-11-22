@@ -15,6 +15,7 @@ out Vertex
 {
 vec4 colour;
 vec2 texCoord;
+vec3 position;
 vec3 normal;
 vec3 tangent;
 vec3 binormal;
@@ -29,6 +30,8 @@ mat3 normalMatrix = transpose (inverse ( mat3 ( modelMatrix )));
 OUT.colour        = colour;
 OUT.texCoord      = (textureMatrix * vec4 ( texCoord , 0.0 , 1.0)).xy;
 //OUT.texCoord      = (shadowMatrix * vec4 ( texCoord , 0.0 , 1.0)).xy;
+
+OUT.position      = position;
 
 OUT.normal        = normalize ( normalMatrix * normalize ( normal ));
 OUT.tangent       = normalize ( normalMatrix * normalize ( tangent ));

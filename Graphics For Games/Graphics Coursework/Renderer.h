@@ -3,9 +3,7 @@
 #include "../../nclgl/OGLRenderer.h"
 #include "../../nclgl/Camera.h"
 #include "../../nclgl/HeightMap.h"
-//shadow 
-#include "../../nclgl/MD5Mesh.h"
-#include "../../nclgl/MD5Node.h"
+#include "ParticleEmitter.h"	//A new class!
 class Renderer : public OGLRenderer
 {
 public:
@@ -20,26 +18,28 @@ protected:
 	void DrawWater();
 	void DrawSkybox();
 
-	void DrawMesh(); // For shadow
-	void DrawFloor(); // For shadow
 	void DrawShadowScene(); // For shadow
 	void DrawCombinedScene(); // For shadow
 
-	Shader    * lightShader;
-	Shader    * reflectShader;
-	Shader    * skyboxShader;
-		      
-	Shader    * sceneShader;// For shadow
-	Shader    * shadowShader;// For shadow
-	MD5FileData * hellData;//tex shadow
-	MD5Node     * hellNode;//tex shadow
-	Mesh        * floor;//tex shadow
+	void DrawParticle();
 
-	HeightMap * heightMap;
-	Mesh      * quad;
-		      
-	Light     * light;
-	Camera    * camera;
+	void	SetShaderParticleSize(float f);//And a new setter
+
+	Shader           * lightShader;
+	Shader           * reflectShader;
+	Shader           * skyboxShader;
+	Shader           * sceneShader;// For shadow
+	Shader           * shadowShader;// For shadow
+	Shader           * particleShader;//For particle
+
+	HeightMap        * heightMap;
+	Mesh             * quad;
+		             
+	Light            * light;
+	Camera           * camera;
+
+	ParticleEmitter  * emitter_spring;	//A single particle emitter
+	ParticleEmitter  * emitter_mo;      //A single particle emitter
 
 	GLuint cubeMap;
 

@@ -3,13 +3,15 @@
 
 Renderer::Renderer(Window & parent) : OGLRenderer(parent)
 {
-	camera    = new Camera();
-	heightMap = new HeightMap(TEXTUREDIR"iceland.raw");
-	quad      = Mesh::GenerateQuad();
-	light     = new Light(Vector3((RAW_HEIGHT * HEIGHTMAP_X / 1.0f), 600.0f,
-						 (RAW_HEIGHT * HEIGHTMAP_Z / 1.0f)),
-						 Vector4(0.9f, 0.9f, 1.0f, 1),
-						 (RAW_WIDTH * HEIGHTMAP_X) * 2);
+	camera      = new Camera();
+	emitter_spring = new ParticleEmitter("yun.png");
+	emitter_mo = new ParticleEmitter("grass.png");
+	heightMap   = new HeightMap(TEXTUREDIR"iceland.raw");
+	quad        = Mesh::GenerateQuad();
+	light       = new Light(Vector3((RAW_HEIGHT * HEIGHTMAP_X / 1.0f), 600.0f,
+						   (RAW_HEIGHT * HEIGHTMAP_Z / 1.0f)),
+						    Vector4(0.9f, 0.9f, 1.0f, 1),
+						   (RAW_WIDTH * HEIGHTMAP_X) * 2);
 
 	camera->SetPosition(Vector3(RAW_WIDTH * HEIGHTMAP_X / 2.0f,
 						500.0f,
@@ -22,6 +24,10 @@ Renderer::Renderer(Window & parent) : OGLRenderer(parent)
 				 			   "skyboxFragment.glsl");
 	lightShader   = new Shader("lightShadowVertex.glsl",
 					 		   "lightshadowfrg.glsl");
+	particleShader = new Shader("vertex.glsl",
+							    "fragment.glsl",
+							    "geometry.glsl");
+
 
 	if (!reflectShader->LinkProgram())
 	{
@@ -35,6 +41,54 @@ Renderer::Renderer(Window & parent) : OGLRenderer(parent)
 	{
 		return;
 	}
+	if (!particleShader->LinkProgram())
+	{
+		return;
+	}
+
+	quad      ->  SetTexture(SOIL_load_OGL_texture(TEXTUREDIR"water.jpg",
+			 	  			 SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS));
+	heightMap ->  SetTexture(SOIL_load_OGL_texture(
+			 	  			 TEXTUREDIR"mytexture00.jpg", SOIL_LOAD_AUTO,
+			 	  			 SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS));
+	heightMap ->  SetTexture2(SOIL_load_OGL_texture(TEXTUREDIR"grass02.png",
+			 	  			  SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, 0));
+	heightMap ->  SetBumpMap(SOIL_load_OGL_texture(
+			 				 TEXTUREDIR"mybumpmup.jpg", SOIL_LOAD_AUTO,
+			 				 SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS));
+			  
+			  
+			  
+	cubeMap   =  SOIL_load_OGL_cubemap(TEXTUREDIR"rusted_west.jpg",  TEXTUREDIR"rusted_east.jpg",
+									TEXTUREDIR"rusted_up.jpg",    TEXTUREDIR"rusted_down.jpg",
+									TEXTUREDIR"rusted_south.jpg", TEXTUREDIR"rusted_north.jpg",
+									SOIL_LOAD_RGB, SOIL_CREATE_NEW_ID, 0);
+
+	if (!cubeMap)
+	{
+		return;
+	}
+	if (!quad->GetTexture())
+	{
+		return;
+	}
+	if (!heightMap->GetTexture())
+	{
+		return;
+	}
+	if (!heightMap->GetTexture2())
+	{
+		return;
+	}
+	if (!heightMap->GetBumpMap())
+	{
+		return;
+	}
+
+	SetTextureRepeating(quad      -> GetTexture(), true);
+	SetTextureRepeating(heightMap -> GetTexture(), true);
+	SetTextureRepeating(heightMap -> GetTexture2(), true);
+	SetTextureRepeating(heightMap -> GetBumpMap(), true);
 
 	//initialize shadow
 	glGenTextures(1, &shadowTex);// get a shadowtex
@@ -56,49 +110,7 @@ Renderer::Renderer(Window & parent) : OGLRenderer(parent)
 	glReadBuffer(GL_NONE);//no colour so Read none
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);// disbind shadowFBO
 
-	quad->SetTexture(SOIL_load_OGL_texture(TEXTUREDIR"water.jpg",
-					 SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS));
 
-	//heightMap->SetTexture(SOIL_load_OGL_texture(
-	//					  TEXTUREDIR"BarrenReds.JPG", SOIL_LOAD_AUTO,
-	//					  SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS));
-	heightMap->SetTexture(SOIL_load_OGL_texture(
-						  TEXTUREDIR"mytexture00.jpg", SOIL_LOAD_AUTO,
-						  SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS));
-	//heightMap->SetBumpMap(SOIL_load_OGL_texture(
-	//					  TEXTUREDIR"Barren RedsDOT3.jpg", SOIL_LOAD_AUTO,
-	//					  SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS));
-	heightMap->SetBumpMap(SOIL_load_OGL_texture(
-						  TEXTUREDIR"mybumpmap.jpg", SOIL_LOAD_AUTO,
-						  SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS));
-	
-	cubeMap = SOIL_load_OGL_cubemap(TEXTUREDIR"rusted_west.jpg",  TEXTUREDIR"rusted_east.jpg",
-									TEXTUREDIR"rusted_up.jpg",    TEXTUREDIR"rusted_down.jpg",
-									TEXTUREDIR"rusted_south.jpg", TEXTUREDIR"rusted_north.jpg",
-									SOIL_LOAD_RGB, SOIL_CREATE_NEW_ID, 0);
-
-	if (!cubeMap)
-	{
-		return;
-	}
-	if (!quad->GetTexture())
-	{
-		return;
-	}
-	if (!heightMap->GetTexture())
-	{
-		return;
-	}
-	if (!heightMap->GetBumpMap())
-	{
-		return;
-	}
-
-	SetTextureRepeating(quad      -> GetTexture(), true);
-	SetTextureRepeating(heightMap -> GetTexture(), true);
-	SetTextureRepeating(heightMap -> GetBumpMap(), true);
-
-	init		 = true;
 	waterRotate  = 0.0f;
 
 	projMatrix   = Matrix4::Perspective(1.0f, 15000.0f,
@@ -108,10 +120,15 @@ Renderer::Renderer(Window & parent) : OGLRenderer(parent)
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
+
+	init		 = true;
 }
 
 Renderer ::~Renderer(void)
 {
+	delete emitter_spring;
+	delete emitter_mo;
+
 	delete camera;
 	delete heightMap;
 	delete quad;
@@ -124,19 +141,24 @@ Renderer ::~Renderer(void)
 }
 void Renderer::UpdateScene(float msec)
 {
-	camera      -> UpdateCamera(msec);
-	viewMatrix  =  camera->BuildViewMatrix();
-	waterRotate += msec / 1000.0f;
+	camera         -> UpdateCamera(msec);
+	viewMatrix     =  camera->BuildViewMatrix();
+	waterRotate    += msec / 1000.0f;
+	emitter_spring -> Update(msec);
+	emitter_mo     -> Update(msec);
 }
 
 void Renderer::RenderScene()
 {
+	glClearColor(0, 0, 0, 1);//particle
 	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
 	DrawSkybox();
 
 	DrawShadowScene(); // First render pass for shadow...
 	DrawCombinedScene(); // Second render pass for shadow ...
+
+	DrawParticle();
 
 	SwapBuffers();
 }
@@ -160,13 +182,16 @@ void Renderer::DrawHeightmap()
 	glUniform1i(glGetUniformLocation(currentShader->GetProgram(),
 				"diffuseTex"), 0);
 	glUniform1i(glGetUniformLocation(currentShader->GetProgram(),
+				"grass"), 2);
+	glUniform1i(glGetUniformLocation(currentShader->GetProgram(),
 				"bumpTex"), 1);
 	glUniform3fv(glGetUniformLocation(currentShader->GetProgram(),
 				"cameraPos"), 1, (float *)& camera->GetPosition());
 	glUniform1i(glGetUniformLocation(currentShader->GetProgram(),
-				"shadowTex"), 3);
+				"shadowTex"), 6);
 
-	glActiveTexture(GL_TEXTURE3);
+	glActiveTexture(GL_TEXTURE6);
+	//glActiveTexture(GL_TEXTURE2);
 	glBindTexture(GL_TEXTURE_2D, shadowTex);//bind shadowTex
 
 
@@ -301,4 +326,52 @@ void Renderer::DrawCombinedScene()
 
 
 	//glUseProgram(0);
+}
+void Renderer::DrawParticle()
+{
+	glEnable(GL_BLEND);
+	SetCurrentShader(particleShader);
+
+	glUniform1i(glGetUniformLocation(currentShader->GetProgram(), "diffuseTex"), 0);
+
+	SetShaderParticleSize(emitter_spring->GetParticleSize());
+	emitter_spring -> SetParticleSize(40.0f);
+	emitter_spring -> SetParticleVariance(0.9f);
+	emitter_spring -> SetLaunchParticles(20);
+	emitter_spring -> SetParticleLifetime(20000.0f);
+	emitter_spring -> SetParticleSpeed(0.1f);
+
+
+
+	modelMatrix = Matrix4::Translation(Vector3((RAW_WIDTH * HEIGHTMAP_X / 2.0f) - 450.0f,
+									   200.0f,
+									   (RAW_WIDTH * HEIGHTMAP_X / 2.0f) + 225.0f));
+
+	UpdateShaderMatrices();
+	glDepthMask(GL_FALSE);
+	emitter_spring -> Draw();
+	glDepthMask(GL_TRUE);//delate the edge of particle
+
+	//particle mo
+	SetShaderParticleSize(emitter_mo->GetParticleSize());
+	emitter_mo->SetParticleSize(50.0f);
+	emitter_mo->SetParticleVariance(0.9f);
+	emitter_mo->SetLaunchParticles(20);
+	emitter_mo->SetParticleLifetime(20000.0f);
+	emitter_mo->SetParticleSpeed(0.05f);
+
+	modelMatrix = Matrix4::Translation(Vector3((RAW_WIDTH * HEIGHTMAP_X / 2.0f),
+		200.0f,
+		(RAW_WIDTH * HEIGHTMAP_X / 2.0f)));
+
+	UpdateShaderMatrices();
+	glDepthMask(GL_FALSE);
+	emitter_mo->Draw();
+	glDepthMask(GL_TRUE);//delate the edge of particle
+
+	glDisable(GL_BLEND);
+}
+void Renderer::SetShaderParticleSize(float f)
+{
+	glUniform1f(glGetUniformLocation(currentShader->GetProgram(), "particleSize"), f);
 }
