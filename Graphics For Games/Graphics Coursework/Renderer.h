@@ -39,7 +39,7 @@ protected:
 	Camera           * camera;
 
 	ParticleEmitter  * emitter_spring;	//A single particle emitter
-	ParticleEmitter  * emitter_mo;      //A single particle emitter
+	ParticleEmitter  * emitter_fog;      //A single particle emitter
 
 	GLuint cubeMap;
 

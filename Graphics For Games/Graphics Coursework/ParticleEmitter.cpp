@@ -13,23 +13,28 @@ Constructor, which sets everything to some 'sensible' defaults.
 */
 ParticleEmitter::ParticleEmitter(string image)
 {
-	//particleRate		= 100.0f;
-	//particleLifetime	= 500.0f;
-	//particleSize		= 24.0f;
-	//particleVariance	= 0.2f;
-	//nextParticleTime	= 0.0f;
-	//particleSpeed		= 0.2f;
-	//numLaunchParticles	= 10;
-	//largestSize			= 0;
+	particleRate		  = 100.0f;
+	particleLifetime	  = 500.0f;
+	particleSize		  = 24.0f;
+	particleVariance	  = 0.2f;
+	nextParticleTime	  = 0.0f;
+	particleSpeed		  = 0.2f;
+	numLaunchParticles	  = 10;
+	largestSize			  = 0;
+						  
+	particlecolor         = Vector4(RAND(), RAND(), RAND(), 1.0);
+	particle_direction_x  = 0;
+	particle_direction_y  = 0;
+	particle_direction_z  = 0;
 
-	particleRate = 50.0f;
-	particleLifetime = 5.0f;
-	particleSize = 1.0f;
-	particleVariance = 1.0f;
-	nextParticleTime = 5.0f;
-	numLaunchParticles = 200;
-	particleSpeed = 1.0f;
-	largestSize = 5;
+	//particleRate = 50.0f;
+	//particleLifetime = 5.0f;
+	//particleSize = 1.0f;
+	//particleVariance = 1.0f;
+	//nextParticleTime = 5.0f;
+	//numLaunchParticles = 200;
+	//particleSpeed = 1.0f;
+	//largestSize = 5;
 	/*
 	Each particle is a white dot, which has an alpha fade on it,
 	so the edges fade to 0.0 alpha.
@@ -134,6 +139,11 @@ Particle* ParticleEmitter::GetFreeParticle()
 {
 	Particle * p = NULL;
 
+	particlecolor = Vector4(RAND(), RAND(), RAND(), 1.0);
+	particle_direction_x = ((RAND() - RAND()) * particleVariance);
+	particle_direction_y = ((RAND() - RAND()) * particleVariance);
+	particle_direction_z = ((RAND() - RAND()) * particleVariance);
+
 	//If we have a spare particle on the freelist, pop it off!
 	if (freeList.size() > 0)
 	{
@@ -150,15 +160,17 @@ Particle* ParticleEmitter::GetFreeParticle()
 	//free list, it'll still have the values of its 'previous life'
 
 	//p->colour		= Vector4(RAND(),RAND(),RAND(),1.0);
-	p->colour = Vector4(1.0, 1.0, 1.0, 0.5);
-	p->direction = initialDirection;
+	p->colour      = particlecolor; //Vector4(1.0, 1.0, 1.0, 0.5);
+	p->direction   = initialDirection;
+
 	//p->direction.x += ((RAND()-RAND()) * particleVariance);
 	//p->direction.y += ((RAND()-RAND()) * particleVariance);
 	//p->direction.z += ((RAND()-RAND()) * particleVariance);
 
-	p->direction.x += ((RAND() - RAND()) * particleVariance);
-	p->direction.y += 1;
-	p->direction.z += ((RAND() - RAND()) * particleVariance);
+	//p->direction.x += particle_direction_x;
+	//p->direction.y = particle_direction_y;
+	//p->direction.y += 1;
+	//p->direction.z += particle_direction_z;
 
 	p->direction.Normalise();	//Keep its direction normalised!
 	p->position.ToZero();

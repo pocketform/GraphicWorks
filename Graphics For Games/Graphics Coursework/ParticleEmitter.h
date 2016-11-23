@@ -114,6 +114,16 @@ public:
 	void	SetDirection(const Vector3 dir) { initialDirection = dir; }
 	Vector3 GetDirection() { return initialDirection; }
 
+
+	void	SetParticleColor(const Vector4 corlor) { particlecolor = corlor; }
+	Vector4 GetParticleColor() { return particlecolor; }
+
+	float	GetParticle_Direction_X() { return particle_direction_x; }
+	void	SetParticle_Direction_X(float dir) { particle_direction_x = dir; }
+	float	GetParticle_Direction_Y() { return particle_direction_y; }
+	void	SetParticle_Direction_Y(float dir) { particle_direction_y = dir; }
+	float	GetParticle_Direction_Z() { return particle_direction_z; }
+	void	SetParticle_Direction_Z(float dir) { particle_direction_z = dir; }
 protected:
 	/*
 	This is the magic of our free list. If there's a particle 'spare',
@@ -126,12 +136,18 @@ protected:
 	*/
 	void	ResizeArrays();
 
-	float particleRate;
-	float particleLifetime;
-	float particleSize;
-	float particleVariance;
-	float particleSpeed;
-	int	  numLaunchParticles;
+	float   particleRate;
+	float   particleLifetime;
+	float   particleSize;
+	float   particleVariance;
+	float   particleSpeed;
+	int	    numLaunchParticles;
+
+	float   particle_direction_x;
+	float   particle_direction_y;
+	float   particle_direction_z;
+
+	Vector4 particlecolor;
 
 	Vector3 initialDirection;
 

@@ -1,14 +1,12 @@
 #include "Renderer.h"
-
-
 Renderer::Renderer(Window & parent) : OGLRenderer(parent)
 {
-	camera      = new Camera();
-	emitter_spring = new ParticleEmitter("yun.png");
-	emitter_mo = new ParticleEmitter("grass.png");
-	heightMap   = new HeightMap(TEXTUREDIR"iceland.raw");
-	quad        = Mesh::GenerateQuad();
-	light       = new Light(Vector3((RAW_HEIGHT * HEIGHTMAP_X / 1.0f), 600.0f,
+	camera         = new Camera();
+	emitter_spring = new ParticleEmitter("yun03.png");
+	emitter_fog    = new ParticleEmitter("grass.png");
+	heightMap      = new HeightMap(TEXTUREDIR"iceland.raw");
+	quad           = Mesh::GenerateQuad();
+	light          = new Light(Vector3((RAW_HEIGHT * HEIGHTMAP_X / 1.0f), 600.0f,
 						   (RAW_HEIGHT * HEIGHTMAP_Z / 1.0f)),
 						    Vector4(0.9f, 0.9f, 1.0f, 1),
 						   (RAW_WIDTH * HEIGHTMAP_X) * 2);
@@ -18,16 +16,15 @@ Renderer::Renderer(Window & parent) : OGLRenderer(parent)
 						RAW_WIDTH * HEIGHTMAP_X));
 
 	//shader
-	reflectShader = new Shader(SHADERDIR"PerPixelVertex.glsl",
-							   "waterFregment.glsl");
-	skyboxShader  = new Shader("skyboxVertex.glsl",
-				 			   "skyboxFragment.glsl");
-	lightShader   = new Shader("lightShadowVertex.glsl",
-					 		   "lightshadowfrg.glsl");
+	reflectShader  = new Shader(SHADERDIR"PerPixelVertex.glsl",
+				 			    "waterFregment.glsl");
+	skyboxShader   = new Shader("skyboxVertex.glsl",
+				  			    "skyboxFragment.glsl");
+	lightShader    = new Shader("lightShadowVertex.glsl",
+					 		    "lightshadowfrg.glsl");
 	particleShader = new Shader("vertex.glsl",
 							    "fragment.glsl",
 							    "geometry.glsl");
-
 
 	if (!reflectShader->LinkProgram())
 	{
@@ -45,7 +42,6 @@ Renderer::Renderer(Window & parent) : OGLRenderer(parent)
 	{
 		return;
 	}
-
 	quad      ->  SetTexture(SOIL_load_OGL_texture(TEXTUREDIR"water.jpg",
 			 	  			 SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS));
 	heightMap ->  SetTexture(SOIL_load_OGL_texture(
@@ -57,13 +53,10 @@ Renderer::Renderer(Window & parent) : OGLRenderer(parent)
 			 				 TEXTUREDIR"mybumpmup.jpg", SOIL_LOAD_AUTO,
 			 				 SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS));
 			  
-			  
-			  
 	cubeMap   =  SOIL_load_OGL_cubemap(TEXTUREDIR"rusted_west.jpg",  TEXTUREDIR"rusted_east.jpg",
-									TEXTUREDIR"rusted_up.jpg",    TEXTUREDIR"rusted_down.jpg",
-									TEXTUREDIR"rusted_south.jpg", TEXTUREDIR"rusted_north.jpg",
-									SOIL_LOAD_RGB, SOIL_CREATE_NEW_ID, 0);
-
+									   TEXTUREDIR"rusted_up.jpg",    TEXTUREDIR"rusted_down.jpg",
+									   TEXTUREDIR"rusted_south.jpg", TEXTUREDIR"rusted_north.jpg",
+									   SOIL_LOAD_RGB, SOIL_CREATE_NEW_ID, 0);
 	if (!cubeMap)
 	{
 		return;
@@ -123,11 +116,10 @@ Renderer::Renderer(Window & parent) : OGLRenderer(parent)
 
 	init		 = true;
 }
-
 Renderer ::~Renderer(void)
 {
 	delete emitter_spring;
-	delete emitter_mo;
+	delete emitter_fog;
 
 	delete camera;
 	delete heightMap;
@@ -145,9 +137,8 @@ void Renderer::UpdateScene(float msec)
 	viewMatrix     =  camera->BuildViewMatrix();
 	waterRotate    += msec / 1000.0f;
 	emitter_spring -> Update(msec);
-	emitter_mo     -> Update(msec);
+	emitter_fog     -> Update(msec);
 }
-
 void Renderer::RenderScene()
 {
 	glClearColor(0, 0, 0, 1);//particle
@@ -162,7 +153,6 @@ void Renderer::RenderScene()
 
 	SwapBuffers();
 }
-
 void Renderer::DrawSkybox()
 {
 	glDepthMask(GL_FALSE);
@@ -222,8 +212,8 @@ void Renderer::DrawWater()
 {
 	SetCurrentShader(reflectShader);
 	SetShaderLight(*light);
-	//glUniform3fv(glGetUniformLocation(currentShader->GetProgram(),
-	//			"cameraPos"), 1, (float *)& camera->GetPosition());
+	glUniform3fv(glGetUniformLocation(currentShader->GetProgram(),
+				"cameraPos"), 1, (float *)& camera->GetPosition());
 
 	//glUniform1i(glGetUniformLocation(currentShader->GetProgram(),
 	//			"diffuseTex"), 0);
@@ -338,8 +328,12 @@ void Renderer::DrawParticle()
 	emitter_spring -> SetParticleSize(40.0f);
 	emitter_spring -> SetParticleVariance(0.9f);
 	emitter_spring -> SetLaunchParticles(20);
-	emitter_spring -> SetParticleLifetime(20000.0f);
+	emitter_spring -> SetParticleLifetime(10000.0f);
 	emitter_spring -> SetParticleSpeed(0.1f);
+	emitter_spring->SetDirection(Vector3(0, 1, 0));
+
+	emitter_spring -> SetParticle_Direction_Y(1.0f);
+	emitter_spring -> SetParticleColor(Vector4(1.0f, 1.0f, 1.0f, 0.5f));
 
 
 
@@ -352,21 +346,22 @@ void Renderer::DrawParticle()
 	emitter_spring -> Draw();
 	glDepthMask(GL_TRUE);//delate the edge of particle
 
-	//particle mo
-	SetShaderParticleSize(emitter_mo->GetParticleSize());
-	emitter_mo->SetParticleSize(50.0f);
-	emitter_mo->SetParticleVariance(0.9f);
-	emitter_mo->SetLaunchParticles(20);
-	emitter_mo->SetParticleLifetime(20000.0f);
-	emitter_mo->SetParticleSpeed(0.05f);
-
+	//particle fog
+	SetShaderParticleSize(emitter_fog->GetParticleSize());
+	emitter_fog->SetParticleRate(1000.0f);
+	emitter_fog->SetParticleSize(100.0f);
+	emitter_fog->SetParticleVariance(0.9f);
+	emitter_fog->SetLaunchParticles(10);
+	emitter_fog->SetParticleLifetime(10000.0f);
+	emitter_fog->SetParticleSpeed(0.05f);
+	emitter_fog->SetDirection(Vector3(100, 0, 0));
 	modelMatrix = Matrix4::Translation(Vector3((RAW_WIDTH * HEIGHTMAP_X / 2.0f),
-		200.0f,
+		500.0f,
 		(RAW_WIDTH * HEIGHTMAP_X / 2.0f)));
 
 	UpdateShaderMatrices();
 	glDepthMask(GL_FALSE);
-	emitter_mo->Draw();
+	emitter_fog->Draw();
 	glDepthMask(GL_TRUE);//delate the edge of particle
 
 	glDisable(GL_BLEND);
