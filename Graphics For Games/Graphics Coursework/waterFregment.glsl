@@ -44,7 +44,7 @@ vec4  reflection = texture ( cubeTex ,
 //lambert          *= shadow;
 
 gl_FragColor = (lightColour * diffuse * atten )*( diffuse + reflection );
-
+//gl-FragColor.rgb = diffuse;
 //gl_FragColor +=( diffuse + reflection ) * 0.1f;
 //gl_FragColor.rgb = vec3(atten,atten,atten);
 

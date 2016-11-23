@@ -1,9 +1,10 @@
 #include "Renderer.h"
+#include <random>
 Renderer::Renderer(Window & parent) : OGLRenderer(parent)
 {
 	camera         = new Camera();
 	emitter_spring = new ParticleEmitter("yun03.png");
-	emitter_fog    = new ParticleEmitter("grass.png");
+	emitter_fog    = new ParticleEmitter("fog02.png");
 	heightMap      = new HeightMap(TEXTUREDIR"iceland.raw");
 	quad           = Mesh::GenerateQuad();
 	light          = new Light(Vector3((RAW_HEIGHT * HEIGHTMAP_X / 1.0f), 600.0f,
@@ -137,7 +138,7 @@ void Renderer::UpdateScene(float msec)
 	viewMatrix     =  camera->BuildViewMatrix();
 	waterRotate    += msec / 1000.0f;
 	emitter_spring -> Update(msec);
-	emitter_fog     -> Update(msec);
+	emitter_fog    -> Update(msec);
 }
 void Renderer::RenderScene()
 {
@@ -215,8 +216,8 @@ void Renderer::DrawWater()
 	glUniform3fv(glGetUniformLocation(currentShader->GetProgram(),
 				"cameraPos"), 1, (float *)& camera->GetPosition());
 
-	//glUniform1i(glGetUniformLocation(currentShader->GetProgram(),
-	//			"diffuseTex"), 0);
+	glUniform1i(glGetUniformLocation(currentShader->GetProgram(),
+				"diffuseTex"), 0);
 
 	glUniform1i(glGetUniformLocation(currentShader->GetProgram(),
 				"cubeTex"), 2);
@@ -319,6 +320,9 @@ void Renderer::DrawCombinedScene()
 }
 void Renderer::DrawParticle()
 {
+	std::default_random_engine generator;
+	std::uniform_real_distribution<float> dis1(-1.f, 1.f);
+
 	glEnable(GL_BLEND);
 	SetCurrentShader(particleShader);
 
@@ -328,18 +332,15 @@ void Renderer::DrawParticle()
 	emitter_spring -> SetParticleSize(40.0f);
 	emitter_spring -> SetParticleVariance(0.9f);
 	emitter_spring -> SetLaunchParticles(20);
-	emitter_spring -> SetParticleLifetime(10000.0f);
-	emitter_spring -> SetParticleSpeed(0.1f);
-	emitter_spring->SetDirection(Vector3(0, 1, 0));
-
-	emitter_spring -> SetParticle_Direction_Y(1.0f);
-	emitter_spring -> SetParticleColor(Vector4(1.0f, 1.0f, 1.0f, 0.5f));
-
+	emitter_spring -> SetParticleLifetime(50000.0f);
+	emitter_spring -> SetParticleSpeed(0.3f);
+	emitter_spring -> SetDirection(Vector3(0, 1.5, 0));
+	emitter_spring -> SetParticle_Particle_Gracity(0.1);
 
 
 	modelMatrix = Matrix4::Translation(Vector3((RAW_WIDTH * HEIGHTMAP_X / 2.0f) - 450.0f,
 									   200.0f,
-									   (RAW_WIDTH * HEIGHTMAP_X / 2.0f) + 225.0f));
+									  (RAW_WIDTH * HEIGHTMAP_X / 2.0f) + 225.0f));
 
 	UpdateShaderMatrices();
 	glDepthMask(GL_FALSE);
@@ -348,20 +349,20 @@ void Renderer::DrawParticle()
 
 	//particle fog
 	SetShaderParticleSize(emitter_fog->GetParticleSize());
-	emitter_fog->SetParticleRate(1000.0f);
-	emitter_fog->SetParticleSize(100.0f);
-	emitter_fog->SetParticleVariance(0.9f);
-	emitter_fog->SetLaunchParticles(10);
-	emitter_fog->SetParticleLifetime(10000.0f);
-	emitter_fog->SetParticleSpeed(0.05f);
-	emitter_fog->SetDirection(Vector3(100, 0, 0));
-	modelMatrix = Matrix4::Translation(Vector3((RAW_WIDTH * HEIGHTMAP_X / 2.0f),
-		500.0f,
-		(RAW_WIDTH * HEIGHTMAP_X / 2.0f)));
+	emitter_fog  ->  SetParticleRate(1000.0f);
+	emitter_fog  ->  SetParticleSize(600.0f);
+	emitter_fog  ->  SetParticleVariance(0.9f);
+	emitter_fog  ->  SetLaunchParticles(2);
+	emitter_fog  ->  SetParticleLifetime(150000.0f);
+	emitter_fog  ->  SetParticleSpeed(0.1f);
+	emitter_fog  ->  SetDirection(Vector3(0, 0.3, 0));
+	modelMatrix  =   Matrix4::Translation(Vector3((RAW_WIDTH * HEIGHTMAP_X / 2.0f) - 450.0f,
+										  100.0f,
+										 (RAW_WIDTH * HEIGHTMAP_X / 2.0f) + 225.0f));
 
 	UpdateShaderMatrices();
 	glDepthMask(GL_FALSE);
-	emitter_fog->Draw();
+	emitter_fog -> Draw();
 	glDepthMask(GL_TRUE);//delate the edge of particle
 
 	glDisable(GL_BLEND);

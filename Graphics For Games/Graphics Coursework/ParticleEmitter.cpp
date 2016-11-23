@@ -21,6 +21,7 @@ ParticleEmitter::ParticleEmitter(string image)
 	particleSpeed		  = 0.2f;
 	numLaunchParticles	  = 10;
 	largestSize			  = 0;
+	particle_gravity      = 0;  // set gravity
 						  
 	particlecolor         = Vector4(RAND(), RAND(), RAND(), 1.0);
 	particle_direction_x  = 0;
@@ -43,7 +44,7 @@ ParticleEmitter::ParticleEmitter(string image)
 	//SOIL_LOAD_AUTO,SOIL_CREATE_NEW_ID,SOIL_FLAG_COMPRESS_TO_DXT);
 
 	texture = SOIL_load_OGL_texture(image.c_str(),
-		SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_COMPRESS_TO_DXT);
+			  SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_COMPRESS_TO_DXT);
 }
 
 /*
@@ -85,7 +86,7 @@ void ParticleEmitter::Update(float msec)
 		//Add a number of particles to the vector, obtained from the free list.
 		for (int i = 0; i < numLaunchParticles; ++i)
 		{
-			particles.push_back(GetFreeParticle());
+			particles.push_back(GetFreeParticle(msec));
 		}
 	}
 
@@ -114,8 +115,12 @@ void ParticleEmitter::Update(float msec)
 			//position by multiplying its normalised direction by the
 			//particle speed, and adding the result to the position. Easy!
 
-			p->position += p->direction*(msec*particleSpeed);
-
+			p->position   += p->direction*(msec*particleSpeed);
+			p->position.y -= (msec * p->gravity) / 10;
+			if (p->gravity)
+			{
+				p->gravity += 0.01;
+			}
 
 			++i;	//Only update our iterator value here.
 					//If we didn't do this, we'd skip over particles when removing
@@ -135,11 +140,11 @@ void ParticleEmitter::Update(float msec)
 This function gets a pointer to an unused particle - either from the freelist,
 or from a newly created particle on the heap.
 */
-Particle* ParticleEmitter::GetFreeParticle()
+Particle* ParticleEmitter::GetFreeParticle(float msec)
 {
 	Particle * p = NULL;
 
-	particlecolor = Vector4(RAND(), RAND(), RAND(), 1.0);
+
 	particle_direction_x = ((RAND() - RAND()) * particleVariance);
 	particle_direction_y = ((RAND() - RAND()) * particleVariance);
 	particle_direction_z = ((RAND() - RAND()) * particleVariance);
@@ -160,20 +165,19 @@ Particle* ParticleEmitter::GetFreeParticle()
 	//free list, it'll still have the values of its 'previous life'
 
 	//p->colour		= Vector4(RAND(),RAND(),RAND(),1.0);
-	p->colour      = particlecolor; //Vector4(1.0, 1.0, 1.0, 0.5);
-	p->direction   = initialDirection;
-
+	p -> colour      =  Vector4(1.0, 1.0, 1.0, 0.3);
+	p -> direction   =  initialDirection;
+	p -> gravity     =  particle_gravity;
 	//p->direction.x += ((RAND()-RAND()) * particleVariance);
 	//p->direction.y += ((RAND()-RAND()) * particleVariance);
 	//p->direction.z += ((RAND()-RAND()) * particleVariance);
 
-	//p->direction.x += particle_direction_x;
-	//p->direction.y = particle_direction_y;
-	//p->direction.y += 1;
-	//p->direction.z += particle_direction_z;
-
-	p->direction.Normalise();	//Keep its direction normalised!
-	p->position.ToZero();
+	p -> direction.x += particle_direction_x;
+	p -> direction.y += particle_direction_y;
+	p -> direction.z += particle_direction_z;
+	  	 
+	p -> direction.Normalise();	//Keep its direction normalised!
+	p -> position.ToZero();
 
 	return p;	//return the new particle :-)
 }

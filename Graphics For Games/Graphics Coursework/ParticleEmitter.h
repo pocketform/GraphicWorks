@@ -51,6 +51,7 @@ struct Particle
 	Vector3 position;
 	Vector4 colour;
 	Vector3 direction;
+	float   gravity;
 };
 
 class ParticleEmitter : public Mesh
@@ -124,12 +125,16 @@ public:
 	void	SetParticle_Direction_Y(float dir) { particle_direction_y = dir; }
 	float	GetParticle_Direction_Z() { return particle_direction_z; }
 	void	SetParticle_Direction_Z(float dir) { particle_direction_z = dir; }
+
+	float	GetParticle_Particle_Gracity() { return particle_gravity; }
+	void	SetParticle_Particle_Gracity(float dir) { particle_gravity = dir; }
+
 protected:
 	/*
 	This is the magic of our free list. If there's a particle 'spare',
 	this function will return that, otherwise it'll return a 'new' one
 	*/
-	Particle* GetFreeParticle();
+	Particle* GetFreeParticle(float msec);
 
 	/*
 	Resizes our vertex buffers
@@ -146,6 +151,7 @@ protected:
 	float   particle_direction_x;
 	float   particle_direction_y;
 	float   particle_direction_z;
+	float   particle_gravity;
 
 	Vector4 particlecolor;
 
